@@ -1,16 +1,31 @@
 #include "rplidar_driver_impl.h"
-const int sensorPin = 10;
 const int lidarMotorPin = 3;
 char report[80];
 RPLidar rplidar;
 
+const int NORTH         = 1;
+const int NORTH_EAST    = 2;
+const int EAST          = 3;
+const int SOUTH_EAST    = 4;
+const int SOUTH         = 5;
+const int SOUTH_WEST    = 6;
+const int WEST          = 7;
+const int NORTH_WEST    = 8;
+
+int vibrationSensors[8] = {NORTH, NORTH_EAST, EAST, SOUTH_EAST, SOUTH, SOUTH_WEST, WEST, NORTH_WEST};
+
 void setup(){
   Serial.begin(2000000);
   pinMode(lidarMotorPin, OUTPUT);
-  pinMode(sensorPin, OUTPUT);
-  // INFO Serial port used by RPLidar is hardcoded in begin() function! Please modify it
+  setupVibrationMotors();
   rplidar.begin();
   delay(1000);
+}
+
+void setupVibrationMotors() {
+    for (int sensor : vibrationSensors) {
+        pinMode(sensor, OUTPUT);
+    }
 }
 
 void printInfo(){
@@ -54,11 +69,15 @@ void loop(){
         float angle_in_degrees = nodes[i].angle_z_q14 * 90.f / (1<<14);
         //float distance_in_meters = nodes[i].dist_mm_q2 / 1000.f / (1<<2);
         float distance_in_meters = nodes[i].dist_mm_q2 / (1<<2);
-        
+        processData(angle_in_degrees, distance_in_meters, nodes[i].quality);
 
         //snprintf(report, sizeof(report), "%.2f:%.2f:%d", distance_in_meters, angle_in_degrees, nodes[i].quality);
         //Serial.println(report);
       }
     }
   }
+}
+
+void processData(float angle, float distance, int quality) {
+
 }
