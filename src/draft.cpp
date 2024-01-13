@@ -6,33 +6,46 @@ RPLidar rplidar;
 
 #include <Arduino.h>
 
-const float minDistance = 0.01;
-const float maxDistance = 3.0;
+const int minDistance = 10;
+const int maxDistance = 3000;
+const int bufferSize = 20;
 
 class VibrationSensor {
 private:
   int pin;
   int intensity;
-  float distanceBuffer[512];
+  int distanceBuffer[bufferSize];
   int currentIndex = 0;
 
   void processBuffer() {
     float average = this->calcAverage();
+    int intensity = this->calculateIntensity(average);
+    Serial.println(intensity);
+    this->setIntensity(intensity);
   }
 
   int calculateIntensity(float distance) {
-    // Ensure the distance is within the valid range
-    if (distance > 3.0) {
-      return 0;
-    }
-
+    if (distance > maxDistance) return 0;
     // Calculate the intensity based on the distance
     int intensity = static_cast<int>((maxDistance - distance) / (maxDistance - minDistance) * 255.0);
-
-    // Ensure that the intensity stays within the valid range (0 to 255)
-    intensity = constrain(intensity, 0, 255);
+    intensity = constrain(intensity, 150, 255);
     return intensity;
   }
+
+  float calcAverage() {
+    float sum = 0.0;
+
+    for (int i = 0; i < this->currentIndex; i++) {
+      sum += this->distanceBuffer[i];
+    }
+    float average = sum / this->currentIndex;
+    return average;
+  }
+
+  void setIntensity(int intensity) {
+    this->intensity = intensity;
+    analogWrite(this->pin, this->intensity);
+  }  
 
 public:
   VibrationSensor()
@@ -47,30 +60,10 @@ public:
   void add(float distance) {
     this->distanceBuffer[this->currentIndex] = distance;
     this->currentIndex++;
-    // If the buffer is full, reset the index to 0
-  }
-
-  void changeSens() {
-    float average = this->calcAverage();
-    int intensity = this->calculateIntensity(average);
-    Serial.println(intensity);
-    this->setIntensity(intensity);
-    this->currentIndex = 0;
-  }
-
-  float calcAverage() {
-    float sum = 0.0;
-
-    for (int i = 0; i < this->currentIndex; i++) {
-      sum += this->distanceBuffer[i];
+    if (currentIndex == bufferSize) {
+      this->processBuffer();
+      this->currentIndex = 0;
     }
-
-    return sum / this->currentIndex;
-  }
-
-  void setIntensity(int intensity) {
-    intensity = constrain(intensity, 0, 255);
-    this->intensity = intensity;
   }
 
   int getIntensity() {
@@ -124,12 +117,12 @@ void printSampleDuration() {
 
 #define SCAN_TYPE_STD
 //#define SCAN_TYPE_EXPRESS
-
+int counter = 0;
 void loop() {
   if (!rplidar.isScanning()) {
     rplidar.startScanNormal(true);
     digitalWrite(lidarMotorPin, HIGH);  // turn on the motor
-    delay(10);
+    delay(100);
   } else {
     // loop needs to be send called every loop
     rplidar.loopScanData();
@@ -138,31 +131,28 @@ void loop() {
     rplidar_response_measurement_node_hq_t nodes[512];
     size_t nodeCount = 512;  // variable will be set to number of received measurement by reference
     u_result ans = rplidar.grabScanData(nodes, nodeCount);
+    
     if (IS_OK(ans)) {
       for (size_t i = 0; i < nodeCount; ++i) {
         // convert to standard units
         float angle_in_degrees = nodes[i].angle_z_q14 * 90.f / (1 << 14);
-        float distance_in_meters = nodes[i].dist_mm_q2 / 1000.f / (1 << 2);
+        //float distance_in_meters = nodes[i].dist_mm_q2 / 1000.f / (1 << 2);
+        int distance_in_mm = nodes[i].dist_mm_q2;// / (1 << 2);
         //float distance_in_meters = nodes[i].dist_mm_q2 / (1<<2);
-        processData(angle_in_degrees, distance_in_meters, nodes[i].quality);
+        if (nodes[i].quality < 60) continue;
+        processData(angle_in_degrees, distance_in_mm);
 
-        //snprintf(report, sizeof(report), "%.2f:%.2f:%d", distance_in_meters, angle_in_degrees, nodes[i].quality);
+        snprintf(report, sizeof(report), "%d:%.2f:%d", distance_in_mm, angle_in_degrees, nodes[i].quality);
         //Serial.println(report);
-      }
-
-      for (int i = 0; i < 8; i++) {
-        vibrationSensors[i].changeSens();
       }
     }
   }
 }
 
-void processData(float angle, float distance, int quality) {
+void processData(float angle, int distance) {
   int direction = getDirection(angle);
   if (direction != 0) return;
-  int intensity = calculateIntensity(distance);
   vibrationSensors[direction].add(distance);
-  //vibrationSensors[direction].setIntensity(intensity);
 }
 
 int getDirection(float angle) {
