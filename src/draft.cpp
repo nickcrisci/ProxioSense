@@ -1,17 +1,20 @@
 #include "rplidar_driver_impl.h"
 #include <math.h>
+#include <Arduino.h>
+
 const int lidarMotorPin = 3;
 char report[80];
 RPLidar rplidar;
 
-#include <Arduino.h>
-
+// Strategy values
 const int averageStrat = 0;
 const int minStrat = 1;
 const int slidingWindowStrat = 2;
 
+// Distance constants
 const int minDistance = 300;
 const int maxDistance = 3000;
+
 const int bufferSize = 20;
 
 class VibrationSensor {
@@ -39,14 +42,15 @@ private:
   }
 
   int calculateIntensity(float distance) {
-    if (distance > maxDistance) return 0;
-    if (distance == maxDistance) return 255;
+    if (distance > maxDistance) return 0; 
+    if (distance == maxDistance) return 255; // distance == maxDistance would lead to a zero division, therefor we return early
     // Calculate the intensity based on the distance
     int intensity = static_cast<int>((maxDistance - distance) / (maxDistance - minDistance) * 255.0);
     intensity = constrain(intensity, 0, 255);
     return intensity;
   }
 
+  // Calculate min strategy
   float calcMin() {
     int minNum = 9999;
     for (int i = 0; i < this->currentIndex; i++) {
@@ -56,6 +60,7 @@ private:
     return (float) minNum;
   }
 
+  // Calculate average strategy, can be reused for sliding window strategy
   float calcAverage() {
     float sum = 0.0;
 
@@ -82,7 +87,6 @@ public:
   }
 
   void add(float distance) {
-    //Serial.println(this->strategy);
     this->distanceBuffer[this->currentIndex] = distance;
     this->currentIndex++;
 
@@ -90,23 +94,13 @@ public:
       this->processBuffer();
     }
   }
-
-  int getIntensity() {
-    return this->intensity;
-  }
 };
 
-const int NORTH = 0;
-const int NORTH_EAST = 1;
-const int EAST = 2;
-const int SOUTH_EAST = 3;
-const int SOUTH = 4;
-const int SOUTH_WEST = 5;
-const int WEST = 6;
-const int NORTH_WEST = 7;
-
-int vibrationSensorPins[8][2] = { { NORTH, 10 }, { NORTH_EAST, 1 }, { EAST, 2 }, { SOUTH_EAST, 3 }, { SOUTH, 4 }, { SOUTH_WEST, 5 }, { WEST, 6 }, { NORTH_WEST, 7 } };
-int sensorStrats[8] = {minStrat, averageStrat, averageStrat, averageStrat, averageStrat, averageStrat, averageStrat, averageStrat};
+// The Arrays vibrationMotorPins and motorStrats contain configurations for the vibration sensors
+// The values are ordered the following way:
+// 0: North, 1: North East, 2: East, 3: South East, 4: South, 5: South West, 6: West, 7: North West
+int vibrationMotorPins[8] = {10, 1, 2, 3, 4, 5, 6, 7};
+int motorStrats[8] = { minStrat, averageStrat, minStrat, averageStrat, averageStrat, averageStrat, averageStrat, averageStrat};
 VibrationSensor vibrationSensors[8];
 
 void setup() {
@@ -117,11 +111,12 @@ void setup() {
   delay(1000);
 }
 
+// Sets up vibration motors: Each motor is inizialized with its pin and strategy
 void setupVibrationMotors() {
-  for (int* sensorPin : vibrationSensorPins) {
-    int pin = sensorPin[1];
-    int strategy = sensorStrats[sensorPin[0]];
-    vibrationSensors[sensorPin[0]] = VibrationSensor(pin, strategy);
+  for (int i; i < 8; i++) {
+    int pin = vibrationMotorPins[i];
+    int strategy = motorStrats[i];
+    vibrationSensors[i] = VibrationSensor(pin, strategy);
   }
 }
 
@@ -144,6 +139,7 @@ void setupVibrationMotors() {
   }
 }*/
 
+// Print Lidar info
 void printInfo() {
   rplidar_response_device_info_t info;
   rplidar.getDeviceInfo(info);
@@ -153,6 +149,7 @@ void printInfo() {
   delay(1000);
 }
 
+// Print Lidar sample
 void printSampleDuration() {
   rplidar_response_sample_rate_t sampleInfo;
   rplidar.getSampleDuration_uS(sampleInfo);
@@ -162,17 +159,14 @@ void printSampleDuration() {
   delay(1000);
 }
 
-#define SCAN_TYPE_STD
-//#define SCAN_TYPE_EXPRESS
-int counter = 0;
 void loop() {
   //checkForCommand();
   if (!rplidar.isScanning()) {
-    rplidar.startScanNormal(true);
+    rplidar.startScanNormal(true); // start lidar is normal mode
     digitalWrite(lidarMotorPin, HIGH);  // turn on the motor
     delay(100);
   } else {
-    // loop needs to be send called every loop
+    // loopScanData needs to be called every loop
     rplidar.loopScanData();
 
     // create object to hold received data for processing
@@ -184,26 +178,24 @@ void loop() {
       for (size_t i = 0; i < nodeCount; ++i) {
         // convert to standard units
         float angle_in_degrees = nodes[i].angle_z_q14 * 90.f / (1 << 14);
-        //float distance_in_meters = nodes[i].dist_mm_q2 / 1000.f / (1 << 2);
-        int distance_in_mm = nodes[i].dist_mm_q2;// / (1 << 2);
-        //float distance_in_meters = nodes[i].dist_mm_q2 / (1<<2);
-        if (nodes[i].quality < 60) continue;
-        processData(angle_in_degrees, distance_in_mm);
+        int distance_in_mm = nodes[i].dist_mm_q2 / (1 << 2);
 
-        snprintf(report, sizeof(report), "%d:%.2f:%d", distance_in_mm, angle_in_degrees, nodes[i].quality);
-        //Serial.println(report);
+        if (nodes[i].quality < 60) continue; // if the quality is not sufficient discard the measurement
+        processData(angle_in_degrees, distance_in_mm);
       }
     }
   }
 }
 
+// calculate cardinal direction (as int) from the angle
+int getDirection(float angle) {
+  int index = (int)round(angle / 45) % 8;
+  return index;
+}
+
+// Process incoming angle and distance
 void processData(float angle, int distance) {
   int direction = getDirection(angle);
   if (direction != 0) return;
   vibrationSensors[direction].add(distance);
-}
-
-int getDirection(float angle) {
-  int index = (int)round(angle / 45) % 8;
-  return index;
 }
