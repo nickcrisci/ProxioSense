@@ -2,7 +2,7 @@
 #include <math.h>
 #include <Arduino.h>
 
-const int lidarMotorPin = 3;
+const int lidarMotorPin = 2;
 char report[80];
 RPLidar rplidar;
 
@@ -15,7 +15,7 @@ const int slidingWindowStrat = 2;
 const int minDistance = 300;
 const int maxDistance = 3000;
 
-const int bufferSize = 20;
+const int bufferSize = 10;
 
 class VibrationSensor {
 private:
@@ -26,22 +26,33 @@ private:
   int strategy = 0;
 
   void processBuffer() {
+    Serial.print("Processing buffer for motor: ");
+    Serial.println(this->pin);
     float distance;
     if (this->strategy == averageStrat || this->strategy == slidingWindowStrat) {
       distance = this->calcAverage();
     } else if (this->strategy == minStrat) {
       distance = this->calcMin();
+      Serial.print("Processing calcMin finished for motor: ");
+      Serial.println(this->pin);
     }
 
     int intensity = this->calculateIntensity(distance);
+    Serial.print("Processing calcIntens finished for motor: ");
+    Serial.println(this->pin);
     this->setIntensity(intensity);
-
+    Serial.println("Finished setting intens");
+    Serial.println(this->currentIndex);
     if (this->currentIndex == bufferSize) {
       this->currentIndex = 0;
     }
+    Serial.print("Processing buffer finished for motor: ");
+    Serial.println(this->pin);
   }
 
   int calculateIntensity(float distance) {
+    Serial.print("Processing calcIntens for motor: ");
+    Serial.println(this->pin);
     if (distance > maxDistance) return 0; 
     if (distance == maxDistance) return 255; // distance == maxDistance would lead to a zero division, therefor we return early
     // Calculate the intensity based on the distance
@@ -52,11 +63,14 @@ private:
 
   // Calculate min strategy
   float calcMin() {
+    Serial.print("Processing calcMin for motor: ");
+    Serial.println(this->pin);
     int minNum = 9999;
     for (int i = 0; i < this->currentIndex; i++) {
       if (this->distanceBuffer[i] < minDistance) continue;
       minNum = min(minNum, this->distanceBuffer[i]);
     }
+
     return (float) minNum;
   }
 
@@ -72,8 +86,17 @@ private:
   }
 
   void setIntensity(int intensity) {
+    Serial.print("Setting intensity for motor: ");
+    Serial.println(this->pin);
     this->intensity = intensity;
+    Serial.print("Updated local var for motor: ");
+    Serial.println(this->pin);
+    Serial.print(this->pin);
+    Serial.print(" : ");
+    Serial.println(intensity);
     analogWrite(this->pin, this->intensity);
+    Serial.print("Setting intens done for motor: ");
+    Serial.println(this->pin);
   }  
 
 public:
@@ -98,9 +121,26 @@ public:
 
 // The Arrays vibrationMotorPins and motorStrats contain configurations for the vibration sensors
 // The values are ordered the following way:
-// 0: North, 1: North East, 2: East, 3: South East, 4: South, 5: South West, 6: West, 7: North West
-int vibrationMotorPins[8] = {10, 1, 2, 3, 4, 5, 6, 7};
-int motorStrats[8] = { minStrat, averageStrat, minStrat, averageStrat, averageStrat, averageStrat, averageStrat, averageStrat};
+// 3: North, 4: North East, 5: East, 6: South East, 7: South, 8: South West, 9: West, 10: North West
+const int NorthPin = 3;
+const int North = 0;
+const int NorthEastPin = 4;
+const int NorthEast = 1;
+const int EastPin = 5;
+const int East = 2;
+const int SouthEastPin = 6;
+const int SouthEast = 3;
+const int SouthPin = 7;
+const int South = 4;
+const int SouthWestPin = 8;
+const int SouthWest = 5;
+const int WestPin = 9;
+const int West = 6;
+const int NorthWestPin = 10;
+const int NorthWest = 7;
+
+int vibrationMotorPins[8] = {NorthPin, NorthEastPin, EastPin, SouthEastPin, SouthPin, SouthWestPin, WestPin, NorthWestPin};
+int motorStrats[8] = {minStrat, minStrat, minStrat, minStrat, minStrat, minStrat, minStrat, minStrat};
 VibrationSensor vibrationSensors[8];
 
 void setup() {
@@ -190,12 +230,16 @@ void loop() {
 // calculate cardinal direction (as int) from the angle
 int getDirection(float angle) {
   int index = (int)round(angle / 45) % 8;
+  Serial.println(index);
   return index;
 }
 
 // Process incoming angle and distance
 void processData(float angle, int distance) {
   int direction = getDirection(angle);
-  if (direction != 0) return;
+  //if (direction >= South ) return;
+  //if (direction < 4) return;
+  //if (direction > 6) return;
+  
   vibrationSensors[direction].add(distance);
 }
