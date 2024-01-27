@@ -3,6 +3,7 @@
 This project contains the source code for an arduino based prototype.
 
 This project uses the Arduino IDE to build and upload the sources to an Arduino Nano 33 BLE Sense.
+We use an RPLidar A1 with 8 Grove Vibration Motors.
 
 ## Setup
 1. Install AruinoIDE
@@ -17,9 +18,17 @@ This project uses the Arduino IDE to build and upload the sources to an Arduino 
 ## Docs
 ### Pinout
 
-| Pin Name     | PIN | Type   | Mode    | PWM | Use                                      |
-|--------------|-----|--------|---------|-----|------------------------------------------|
-| tbd | | | | | |
+| Pin Name      | PIN | Type    | PWM | Use                                                    |
+|---------------|-----|---------|---|--------------------------------------------------------|
+| lidarMotorPin | 2   | Output  | (✅) | Controll the motor of the lidar. Always HIGH           |
+| NorthPin      | 3   | Output  | ✅ | Controll the vibration strengh on the north side.      |
+| NorthEastPin  | 4   | Output  | ✅ | Controll the vibration strengh on the north east side. |
+| EastPin       | 5   | Output  | ✅ | Controll the vibration strengh on the east side.       |
+| SouthEastPin  | 6   | Output  | ✅ | Controll the vibration strengh on the south east side. |
+| SouthPin      | 7   | Output  | ✅ | Controll the vibration strengh on the south side.      |
+| SouthWestPin  | 8   | Output  | ✅ | Controll the vibration strengh on the south west side. |
+| WestPin       | 9   | Output  | ✅ | Controll the vibration strengh on the west side.       |
+| NorthWestPin  | 10  | Output  | ✅ | Controll the vibration strengh on the north west side. |
 
 
 ### Schematic
