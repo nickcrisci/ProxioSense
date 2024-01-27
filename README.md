@@ -18,17 +18,19 @@ We use an RPLidar A1 with 8 Grove Vibration Motors.
 ## Docs
 ### Pinout
 
-| Pin Name      | PIN | Type    | PWM | Use                                                    |
-|---------------|-----|---------|---|--------------------------------------------------------|
-| lidarMotorPin | 2   | Output  | (✅) | Controll the motor of the lidar. Always HIGH           |
-| NorthPin      | 3   | Output  | ✅ | Controll the vibration strengh on the north side.      |
-| NorthEastPin  | 4   | Output  | ✅ | Controll the vibration strengh on the north east side. |
-| EastPin       | 5   | Output  | ✅ | Controll the vibration strengh on the east side.       |
-| SouthEastPin  | 6   | Output  | ✅ | Controll the vibration strengh on the south east side. |
-| SouthPin      | 7   | Output  | ✅ | Controll the vibration strengh on the south side.      |
-| SouthWestPin  | 8   | Output  | ✅ | Controll the vibration strengh on the south west side. |
-| WestPin       | 9   | Output  | ✅ | Controll the vibration strengh on the west side.       |
-| NorthWestPin  | 10  | Output  | ✅ | Controll the vibration strengh on the north west side. |
+| Pin Name      | PIN | Type   | PWM | Use                                                    |
+|---------------|-----|--------|-----|--------------------------------------------------------|
+| lidarRxPin    | 0   | Input  | ❌   | Serial RX for Lidar -> Arduino communication           |
+| lidarTxPin    | 1   | Output | ❌   | Serial TX for Arduino -> Lidar communication           |
+| lidarMotorPin | 2   | Output | (✅) | Controll the motor of the lidar. Always HIGH           |
+| NorthPin      | 3   | Output | ✅   | Controll the vibration strengh on the north side.      |
+| NorthEastPin  | 4   | Output | ✅   | Controll the vibration strengh on the north east side. |
+| EastPin       | 5   | Output | ✅   | Controll the vibration strengh on the east side.       |
+| SouthEastPin  | 6   | Output | ✅   | Controll the vibration strengh on the south east side. |
+| SouthPin      | 7   | Output | ✅   | Controll the vibration strengh on the south side.      |
+| SouthWestPin  | 8   | Output | ✅   | Controll the vibration strengh on the south west side. |
+| WestPin       | 9   | Output | ✅   | Controll the vibration strengh on the west side.       |
+| NorthWestPin  | 10  | Output | ✅   | Controll the vibration strengh on the north west side. |
 
 
 ### Schematic
