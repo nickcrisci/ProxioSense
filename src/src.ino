@@ -27,11 +27,15 @@ const int NorthWest = 7;
 
 int vibrationMotorPins[8] = {NorthPin, NorthEastPin, EastPin, SouthEastPin, SouthPin, SouthWestPin, WestPin, NorthWestPin};
 int motorStrats[8] = {minStrat, minStrat, minStrat, minStrat, minStrat, minStrat, minStrat, minStrat};
-VibrationSensor vibrationSensors[8];
+VibrationMotor vibrationMotors[8];
+
+VibrationMotor dummyMotor = VibrationMotor();
 
 void setup() {
   Serial.begin(2000000);
+
   pinMode(lidarMotorPin, OUTPUT);
+
   setupVibrationMotors();
   digitalWrite(lidarMotorPin, HIGH);  // turn on the motor
   rplidar.begin();
@@ -43,7 +47,7 @@ void setupVibrationMotors() {
   for (int i = 0; i < 8; i++) {
     int pin = vibrationMotorPins[i];
     int strategy = motorStrats[i];
-    vibrationSensors[i] = VibrationSensor(pin, strategy);
+    vibrationMotors[i] = VibrationMotor(pin, strategy);
   }
 }
 
@@ -83,9 +87,68 @@ void loop() {
 void processData(float angle, int distance) {
   int direction = getDirection(angle);
 
-  if (direction == North || direction == East || direction == South || direction == West) return;
+  //if (direction == North || direction == East || direction == South || direction == West) return;
   
-  vibrationSensors[direction].add(distance);
+  vibrationMotors[direction].add(distance);
+
+  if (vibrationMotors[direction].intensity > 0) {
+    while (activeMotors(false) >= 4) {
+      clearWeakestMotor();
+    }
+
+    analogWrite(vibrationMotors[direction].pin, vibrationMotors[direction].intensity);
+  } else if (vibrationMotors[direction].intensity == 0){
+    deactivateMotor(vibrationMotors[direction]);
+  }
+}
+
+void deactivateMotor(VibrationMotor& motor) {
+  Serial.print("Clearing Motor on pin ");
+  Serial.println(motor.pin);
+  motor.intensity = -1;
+  analogWrite(motor.pin, -1);
+}
+
+void clearWeakestMotor () {
+  Serial.println("Clearing Weakest");
+
+  int weakestIndex = 0;
+
+  while (vibrationMotors[weakestIndex].intensity < 0) weakestIndex++;
+
+  for (int i = weakestIndex + 1; i < 8; i++) {
+    if (vibrationMotors[i].intensity < vibrationMotors[weakestIndex].intensity && vibrationMotors[i].intensity >= 0)
+      weakestIndex = i;
+  }
+
+  deactivateMotor(vibrationMotors[weakestIndex]);
+}
+
+int activeMotors (bool print) {
+  int count = 0;
+
+  if (print)
+    Serial.print("Active Motors: ");
+
+  for (int i = 0; i < 8; i++) {
+    if (print) {
+      Serial.print(vibrationMotors[i].pin);
+      Serial.print(":");
+      Serial.print(vibrationMotors[i].intensity);
+      Serial.print(" ");
+    }
+  
+    if (vibrationMotors[i].intensity >= 0) {
+      count++;
+    }
+  }
+
+  if (print) {
+    Serial.print("|");
+    Serial.println(count);
+  }
+
+  return count;
 }
 
 // calculate cardinal direction (as int) from the angle

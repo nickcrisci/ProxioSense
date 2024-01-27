@@ -12,11 +12,8 @@ const int bufferSize = 10;
 const int minDistance = 300;
 const int maxDistance = 3000;
 
-
-class VibrationSensor {
+class VibrationMotor {
 private:
-  int pin;
-  int intensity;
   int distanceBuffer[bufferSize];
   int currentIndex = 0;
   int strategy = 0;
@@ -29,8 +26,8 @@ private:
       distance = this->calcMin();
     }
 
-    int intensity = this->calculateIntensity(distance);
-    this->setIntensity(intensity);
+    this->setIntensity(this->calculateIntensity(distance));
+
     if (this->currentIndex == bufferSize) {
       this->currentIndex = 0;
     }
@@ -72,15 +69,17 @@ private:
     Serial.print(this->pin);
     Serial.print(" : ");
     Serial.println(intensity);
-    analogWrite(this->pin, this->intensity);
   }  
 
 public:
-  VibrationSensor(): pin(0), intensity(0) {}  // Default constructor
+  VibrationMotor(): pin(-1), intensity(999) {}  // Default constructor
 
-  VibrationSensor(int pin, int strategy) {
+  int pin;
+  int intensity;
+
+  VibrationMotor(int pin, int strategy) {
     this->pin = pin;
-    this->intensity = 0;
+    this->intensity = -1;
     this->strategy = strategy;
     pinMode(this->pin, OUTPUT);
   }
