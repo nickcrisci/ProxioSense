@@ -1,0 +1,63 @@
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+NRF52TimerInterrupt	KEYWORD1
+NRF52Timer	KEYWORD1
+NRF52_Slow_PWM_ISR KEYWORD1
+NRF52_Slow_PWM  KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+##################################
+# class NRF52TimerInterrupt
+##################################
+
+setFrequency	KEYWORD2
+setInterval	KEYWORD2
+attachInterrupt	KEYWORD2
+attachInterruptInterval	KEYWORD2
+detachInterrupt	KEYWORD2
+disableTimer	KEYWORD2
+reattachInterrupt	KEYWORD2
+enableTimer	KEYWORD2
+stopTimer	KEYWORD2
+restartTimer	KEYWORD2
+
+#################################
+# class NRF52_Slow_PWM_ISR
+#################################
+
+init  KEYWORD2
+run KEYWORD2
+setPWM  KEYWORD2
+setPWM_Period  KEYWORD2
+modifyPWMChannel  KEYWORD2
+modifyPWMChannel_Period KEYWORD2
+deleteChannel KEYWORD2
+restartChannel  KEYWORD2
+isEnabled KEYWORD2
+enable  KEYWORD2
+disable KEYWORD2
+enableAll KEYWORD2
+disableAll  KEYWORD2
+toggle  KEYWORD2
+getnumChannels  KEYWORD2
+getNumAvailablePWMChannels KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+NRF52_SLOW_PWM_VERSION  LITERAL1
+NRF52_SLOW_PWM_VERSION_MAJOR  LITERAL1
+NRF52_SLOW_PWM_VERSION_MINOR  LITERAL1
+NRF52_SLOW_PWM_VERSION_PATCH  LITERAL1
+NRF52_SLOW_PWM_VERSION_INT  LITERAL1
+
+USING_MICROS_RESOLUTION LITERAL1
+CHANGING_PWM_END_OF_CYCLE LITERAL1
+
+INVALID_NRF52_PIN  LITERAL1
