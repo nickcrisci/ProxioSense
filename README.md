@@ -1,16 +1,17 @@
-# gadget
+# ProxioSence
 
 This project contains the source code for an arduino based prototype.
 
-This project uses PlatformIO to build and upload the sources to an Arduino Nano 33 BLE Sense.
+This project uses the Arduino IDE to build and upload the sources to an Arduino Nano 33 BLE Sense.
 
 ## Setup
-1. Install Clion with the PlatformIO plugin.
-2. Import the project
+1. Install AruinoIDE
+2. Open it, set Sketchbook location under file -> preferences to this folder
 3. Code
 4. Connect the Arduino
-5. Set the Arduino to bootloader mode by pressing the button on it twice
-6. Pray that it works when running the run configuration "PlatformIO Upload" while having the arduino connected.
+5. Upload
+6. ???
+7. Profit
 
 
 ## Docs
@@ -18,7 +19,7 @@ This project uses PlatformIO to build and upload the sources to an Arduino Nano 
 
 | Pin Name     | PIN | Type   | Mode    | PWM | Use                                      |
 |--------------|-----|--------|---------|-----|------------------------------------------|
-
+| tbd | | | | | |
 
 
 ### Schematic
@@ -31,7 +32,7 @@ schematic shows will **not** work, simply because the nano 33 BLE has PWM contro
 ### Model
 A model that is ready to print can be found in `model.zip`. A complete model showing the final assembly is available
 in `model_complete.zip`. A combination of both are freely available on 
-[www.tinkercad.com/things/8l4mmc46oUY](https://www.tinkercad.com/things/8l4mmc46oUY?sharecode=7y52BVM28gK7xMtrsuCjCtV3D4AToLdza9LtIuo_Oxk).
+
 
 ## License
 Copyright 2023 The ProxioSense Team
