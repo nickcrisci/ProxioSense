@@ -92,21 +92,12 @@ void processData(float angle, int distance) {
   vibrationMotors[direction].add(distance);
 
   if (vibrationMotors[direction].intensity > 0) {
-    while (activeMotors(false) >= 4) {
+    if (activeMotors(false) > 4) {
       clearWeakestMotor();
     }
 
-    analogWrite(vibrationMotors[direction].pin, vibrationMotors[direction].intensity);
-  } else if (vibrationMotors[direction].intensity == 0){
-    deactivateMotor(vibrationMotors[direction]);
+    vibrationMotors[direction].startMotor();
   }
-}
-
-void deactivateMotor(VibrationMotor& motor) {
-  Serial.print("Clearing Motor on pin ");
-  Serial.println(motor.pin);
-  motor.intensity = -1;
-  analogWrite(motor.pin, -1);
 }
 
 void clearWeakestMotor () {
@@ -114,14 +105,13 @@ void clearWeakestMotor () {
 
   int weakestIndex = 0;
 
-  while (vibrationMotors[weakestIndex].intensity < 0) weakestIndex++;
-
   for (int i = weakestIndex + 1; i < 8; i++) {
-    if (vibrationMotors[i].intensity < vibrationMotors[weakestIndex].intensity && vibrationMotors[i].intensity >= 0)
+    if (vibrationMotors[i].intensity < 0) continue;
+    if (vibrationMotors[i].intensity < vibrationMotors[weakestIndex].intensity)
       weakestIndex = i;
   }
 
-  deactivateMotor(vibrationMotors[weakestIndex]);
+  vibrationMotors[weakestIndex].deactivateMotor();
 }
 
 int activeMotors (bool print) {
@@ -138,7 +128,7 @@ int activeMotors (bool print) {
       Serial.print(" ");
     }
   
-    if (vibrationMotors[i].intensity >= 0) {
+    if (vibrationMotors[i].intensity > 0) {
       count++;
     }
   }
@@ -161,16 +151,34 @@ void printError (u_result result) {
     uint rawCode = result & ~RESULT_FAIL_BIT;
 
     Serial.print("Error:");
-    if (rawCode == 32) Serial.println("RESULT_ALREADY_DONE");
-    else if (rawCode == 32768) Serial.println("RESULT_INVALID_DATA");
-    else if (rawCode == 32769) Serial.println("RESULT_OPERATION_FAIL");
-    else if (rawCode == 32770) Serial.println("RESULT_OPERATION_TIMEOUT");
-    else if (rawCode == 32771) Serial.println("RESULT_OPERATION_STOP");
-    else if (rawCode == 32772) Serial.println("RESULT_OPERATION_NOT_SUPPORT");
-    else if (rawCode == 32773) Serial.println("RESULT_FORMAT_NOT_SUPPORT");
-    else if (rawCode == 32774) Serial.println("RESULT_INSUFFICIENT_MEMORY");
-    else {
-      Serial.print("Unknown error: ");
-      Serial.println(result);
+    switch (rawCode) {
+      case 32:
+        Serial.println("RESULT_ALREADY_DONE");
+        break;
+      case 32768:
+        Serial.println("RESULT_INVALID_DATA");
+        break;
+      case 32769:
+        Serial.println("RESULT_OPERATION_FAIL");
+        break;
+      case 32770:
+        Serial.println("RESULT_OPERATION_TIMEOUT");
+        break;
+      case: 32771:
+        Serial.println("RESULT_OPERATION_STOP");
+        break;
+      case: 32772:
+        Serial.println("RESULT_OPERATION_NOT_SUPPORT");
+        break;
+      case: 32773
+        Serial.println("RESULT_FORMAT_NOT_SUPPORT");
+        break;
+      case: 32774
+        Serial.println("RESULT_INSUFFICIENT_MEMORY");
+        break;
+      default:
+        Serial.print("Unknown error: ");
+        Serial.println(result);
+        break;
     }
 }

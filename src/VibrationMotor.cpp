@@ -27,18 +27,19 @@ private:
     }
 
     this->setIntensity(this->calculateIntensity(distance));
-
     if (this->currentIndex == bufferSize) {
       this->currentIndex = 0;
     }
   }
 
   int calculateIntensity(float distance) {
-    if (distance > maxDistance) return 0; 
+    if (distance > maxDistance) return -1; // This leads to analogWrite switching off the motor
     if (distance == maxDistance) return 255; // distance == maxDistance would lead to a zero division, therefor we return early
+
     // Calculate the intensity based on the distance
     int intensity = static_cast<int>((maxDistance - distance) / (maxDistance - minDistance) * 255.0);
     intensity = constrain(intensity, 0, 255);
+    if (intensity == 0) return -1; // This leads to analogWrite switching off the motor
     return intensity;
   }
 
@@ -65,7 +66,10 @@ private:
   }
 
   void setIntensity(int intensity) {
-    this->intensity = intensity;
+    if (intensity <= 0)
+      this->deactivateMotor();
+    else
+      this->intensity = intensity;
     Serial.print(this->pin);
     Serial.print(" : ");
     Serial.println(intensity);
@@ -91,5 +95,16 @@ public:
     if (this->strategy == slidingWindowStrat || this->currentIndex == bufferSize) {
       this->processBuffer();
     }
+  }
+
+  void startMotor() {
+    analogWrite(this->pin, this->intensity);
+  }
+
+  void deactivateMotor() {
+    Serial.print("Clearing Motor on pin ");
+    Serial.println(this->pin);
+    this->intensity = -1;
+    analogWrite(this->pin, this->intensity);
   }
 };
