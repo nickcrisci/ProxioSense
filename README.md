@@ -37,13 +37,12 @@ We use an RPLidar A1 with 8 Grove Vibration Motors.
 The schematic can be found at `schematic.png`. Just keep in mind that this schematic shows an Arduino Uno and not an 
 Arduino nano 33 BLE that is required for this project. Building it with an uno and keeping the same pinout as the 
 schematic shows will **not** work, simply because the nano 33 BLE has PWM control on different pins than the uno!
-![](.\schematic.png)
+![](assets/final_circuit_diagram.png)
 
 
 ### Model
-A model that is ready to print can be found in `model.zip`. A complete model showing the final assembly is available
-in `model_complete.zip`. A combination of both are freely available on 
-
+All individual components that have to be printed can be found as .obj files in the `assets` folder. A complete model showing the final assembly is available
+in `assets/ProxioSense - complete model.zip`.
 
 ## License
 Copyright 2023 The ProxioSense Team
