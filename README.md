@@ -1,4 +1,4 @@
-# ProxioSence
+# ProxioSense
 
 This project contains the source code for an arduino based prototype.
 
